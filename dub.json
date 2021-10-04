@@ -1,0 +1,15 @@
+{
+	"targetType": "executable",
+	"name": "idl2d",
+	"description": "Helper for converting Microsoft IDL files to D extracted from https://github.com/dlang/visuald/tree/master/c2d",
+	
+	"authors": ["Rainer Schuetze", "Adam D. Ruppe"],
+	"license": "BSL-1.0",
+
+	"sourceFiles": ["idl2d.d"],
+	"sourcePaths": ["c2d"],
+
+	"dependencies": {
+		"arsd-official:characterencodings": "*"
+	}
+}

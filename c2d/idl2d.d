@@ -256,6 +256,7 @@ class idl2d
 			tokIt.erase();
 
 			txt = cpp_string(txt);
+			txt = txt.replace("STDAPI", "extern(Windows) HRESULT");
 			TokenList tokens = scanText(txt, tokIt.lineno, false);
 			tokIt = insertTokenList(tokIt, tokens);
 			tokIt.pretext = pretext ~ tokIt.pretext;
@@ -1566,9 +1567,9 @@ version(all)
 				else if(parenCount > 0)
 				{
 					// in function argument
-					//if(tok.text == "const" || tok.text == "CONST")
-					//	tok.text = "/*const*/";
-					//else
+					if(tok.text == "const" || tok.text == "CONST")
+						tok.text = "/*const*/";
+					else
 					if (tok.text.startsWith("REF") &&
 						tok.text != "REFSHOWFLAGS" && !tok.text.startsWith("REFERENCE"))
 					{
@@ -1680,7 +1681,7 @@ version(none) version(vsi)
 		replaceTokenSequence(tokens, "interface $_ident;", "/+ interface $_ident; +/", true);
 		replaceTokenSequence(tokens, "dispinterface $_ident;", "/+ dispinterface $_ident; +/", true);
 		replaceTokenSequence(tokens, "coclass $_ident;", "/+ coclass $_ident; +/", true);
-		replaceTokenSequence(tokens, "library $_ident {", "version(all)\n{ /+ library $_ident +/", true);
+		replaceTokenSequence(tokens, "library $_ident {", "enum LibraryInfo;\nversion(all)\n{ /+ library $_ident +/", true);
 		replaceTokenSequence(tokens, "importlib($expr);", "/+importlib($expr);+/", true);
 
 version(remove_pp)
@@ -2168,7 +2169,8 @@ else
 						if(tokIt.atBegin || (tokIt[-1].text != "(" && tokIt[-1].text != "alias"))
 							if (tok.pretext.indexOf('\n') < 0)
 								tok.pretext ~= "\n\t\t";
-						tok.text = "/+[";
+						//tok.text = "/+[";
+						tok.text = `@("`;
 					}
 				}
 			}
@@ -2179,7 +2181,8 @@ else
 				   (openit.atBegin || (openit-1).atBegin || openit[-1].text != "{" || openit[-2].text != "="))
 					if((tokIt[-1].type != Token.Number || tokIt[-2].text != "[") &&
 					   (tokIt[-2].text != "[" || tokIt[1].text != ";"))
-						tok.text = "]+/";
+						//tok.text = "]+/";
+						tok.text = `")`;
 			}
 			else if(tok.text == "struct" && tokIt[1].type == Token.Identifier && tokIt[2].text != "{")
 			{
@@ -2469,10 +2472,20 @@ else
 		//hdr ~= "import std.c.windows.windows;\n";
 		//hdr ~= "import std.c.windows.com;\n";
 		//hdr ~= "import idl.pp_util;\n";
+
+		hdr ~= `
+public import core.sys.windows.windows;
+public import core.sys.windows.unknwn;
+public import core.sys.windows.oaidl;
+public import core.sys.windows.objidl;
+`;
+
+		/+
 		if(pkg == packageVSI)
 			hdr ~= "import " ~ packageNF ~ "vsi;\n";
 		else
 			hdr ~= "import " ~ packageNF ~ "base;\n";
+		+/
 		hdr ~= "\n";
 
 		foreach(imp; addedImports)
